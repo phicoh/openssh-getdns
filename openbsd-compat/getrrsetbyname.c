@@ -47,7 +47,7 @@
 
 #include "includes.h"
 
-#if !defined (HAVE_GETRRSETBYNAME) && !defined (HAVE_LDNS)
+#if !defined (HAVE_GETRRSETBYNAME) && !defined (HAVE_LDNS) && !defined(HAVE_GETDNS)
 
 #include <stdlib.h>
 #include <string.h>

@@ -70,6 +70,7 @@ char *server_version_string = NULL;
 Key *previous_host_key = NULL;
 
 static int matching_host_key_dns = 0;
+static int dns_secure = 0;
 
 static pid_t proxy_command_pid = 0;
 
@@ -974,13 +975,18 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 				fatal("%s: sshkey_fingerprint fail", __func__);
 			msg2[0] = '\0';
 			if (options.verify_host_key_dns) {
-				if (matching_host_key_dns)
-					snprintf(msg2, sizeof(msg2),
-					    "Matching host key fingerprint"
-					    " found in DNS.\n");
-				else
+				if (!matching_host_key_dns)
 					snprintf(msg2, sizeof(msg2),
 					    "No matching host key fingerprint"
+					    " found in DNS.\n");
+				else if (!dns_secure)
+					snprintf(msg2, sizeof(msg2),
+					    "The DNS lookup was not secure,"
+					    " however a matching host key"
+					    " fingerprint was found in DNS.\n");
+				else
+					snprintf(msg2, sizeof(msg2),
+					    "Matching host key fingerprint"
 					    " found in DNS.\n");
 			}
 			snprintf(msg, sizeof(msg),
@@ -1320,6 +1326,9 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 				    flags & DNS_VERIFY_SECURE) {
 					r = 0;
 					goto out;
+				}
+				if (flags & DNS_VERIFY_SECURE) {
+					dns_secure = 1;
 				}
 				if (flags & DNS_VERIFY_MATCH) {
 					matching_host_key_dns = 1;

@@ -1516,6 +1516,38 @@ int main() { ldns_status status = ldns_verify_trusted(NULL, NULL, NULL, NULL); s
 	fi
 ])
 
+# Check whether user wants to use getdns
+GETDNS_MSG="no"
+AC_ARG_WITH(getdns,
+	[  --with-getdns[[=PATH]]      Use getdns for DNSSEC support (optionally in PATH)],
+    [
+        if test "x$withval" != "xno" ; then
+
+			if test "x$withval" != "xyes" ; then
+				CPPFLAGS="$CPPFLAGS -I${withval}/include"
+				LDFLAGS="$LDFLAGS -L${withval}/lib"
+			fi
+
+            AC_DEFINE(HAVE_GETDNS, 1, [Define if you want getdns support])
+            LIBS="-lgetdns $LIBS"
+            GETDNS_MSG="yes"
+
+            AC_MSG_CHECKING([for getdns support])
+            AC_LINK_IFELSE(
+                [AC_LANG_SOURCE([[
+#include <getdns/getdns.h>
+int main() { getdns_context *this_context; getdns_return_t status = getdns_context_create(&this_context, 1); return (status == GETDNS_RETURN_GOOD ? 0 : 1); }
+                                ]])
+                ],
+				[AC_MSG_RESULT(yes)],
+				[
+					AC_MSG_RESULT(no)
+					AC_MSG_ERROR([** Incomplete or missing getdns libraries.])
+				])
+        fi
+    ]
+)
+
 # Check whether user wants libedit support
 LIBEDIT_MSG="no"
 AC_ARG_WITH([libedit],
